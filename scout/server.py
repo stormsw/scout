@@ -158,6 +158,16 @@ def get_option_parser():
         '--logfile',
         dest='logfile',
         help='Log file')
+    parser.add_option(
+        '-m',
+        '--mmap-size',
+        dest='mmap_size',
+        help='Memory Map limit for POSIX compatible, default 1000000000')
+    # parser.add_option(
+    #     '-t',
+    #     '--temp-store',
+    #     dest='temp_store',
+    #     help='Use SQLite temp store, default memory')
     return parser
 
 def parse_options():
@@ -179,7 +189,13 @@ def parse_options():
     elif args:
         config['DATABASE'] = args[0]
 
-    pragmas = [('journal_mode', options.journal_mode)]
+    pragmas = [
+        ('journal_mode', options.journal_mode),
+        # TODO: consider to uncomment when required to work with temp tables
+        # ('temp_store', 'memory'),
+        ('mmap_size', options.mmap_size), # 1Gb should be enough for a moment
+        ('optimize; -- ', 'dirty hack to bypass peewee functional pragmas')]
+
     if options.cache_size:
         pragmas.append(('cache_size', -1024 * options.cache_size))
     if not options.fsync:

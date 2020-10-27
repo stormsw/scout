@@ -16,7 +16,7 @@ from werkzeug.exceptions import NotFound
 
 from scout.constants import PROTECTED_KEYS
 from scout.constants import RANKING_CHOICES
-from scout.constants import SEARCH_BM25
+from scout.constants import SEARCH_BM25, SEARCH_NONE
 from scout.exceptions import error
 from scout.models import database
 from scout.models import Attachment
@@ -148,13 +148,14 @@ class ScoutView(object):
             error('Search term is required.')
 
         query = engine.search(q or '*', index, ranking, ordering, **filters)
+        include_score = (q!='*' and ranking!=SEARCH_NONE)
         pq = self.paginated_query(query)
 
         response = {
             'document_count': document_count,
             'documents': document_serializer.serialize_query(
                 pq.get_object_list(),
-                include_score=True if q else False),
+                include_score=include_score),
             'filtered_count': query.count(),
             'filters': filters,
             'ordering': ordering,
